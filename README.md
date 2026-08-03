@@ -4,6 +4,10 @@ A Windows-friendly desktop converter for Word, Excel, PowerPoint, and other Libr
 
 The intended workflow is simple: add files or folders, choose where the PDFs should go, and click **Convert**. The backend is deliberately conservative so an old PDF is never mistaken for a newly converted file.
 
+<img width="1042" height="723" alt="screenshot" src="https://github.com/user-attachments/assets/d62332db-6a47-4e88-8ab5-15ec9afe68c3" />
+
+---
+
 ## Reliability guarantees
 
 - LibreOffice writes each result into a private staging directory.
