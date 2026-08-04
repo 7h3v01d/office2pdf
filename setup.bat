@@ -5,14 +5,14 @@ cd /d "%~dp0"
 where py >nul 2>nul
 if errorlevel 1 (
     echo ERROR: Python Launcher ^(py.exe^) was not found.
-    echo Install Python 3.11 or newer from python.org and enable the launcher.
+    echo Install 64-bit Python 3.11 from python.org and enable the launcher.
     pause
     exit /b 1
 )
 
 if not exist ".venv\Scripts\python.exe" (
     echo Creating virtual environment...
-    py -3 -m venv .venv
+    py -3.11 -m venv .venv
     if errorlevel 1 goto :failed
 )
 

@@ -1,0 +1,9 @@
+Office2PDF Source Code
+======================
+
+Office2PDF is free software licensed under GPL-3.0-or-later.
+The complete corresponding source code for this build is supplied in:
+
+    Office2PDF-1.0.0-source.zip
+
+The archive is created by build_exe.bat and placed beside Office2PDF.exe.

@@ -8,7 +8,7 @@ if not exist ".venv\Scripts\python.exe" (
     exit /b 1
 )
 
-.venv\Scripts\python.exe -m py_compile office2pdf.py gui.py
+.venv\Scripts\python.exe -m py_compile office2pdf.py gui.py native_office_worker.py
 if errorlevel 1 goto :failed
 .venv\Scripts\python.exe -m unittest discover -s tests -v
 if errorlevel 1 goto :failed

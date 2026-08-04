@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Copyright (C) 2026 Leon
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 """
 office2pdf GUI
 ==============
@@ -28,21 +31,74 @@ import sys
 import subprocess
 import concurrent.futures
 import threading
+import time
 from collections import deque
 from pathlib import Path
 from dataclasses import dataclass
 
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QMimeData
-from PyQt6.QtGui import QDragEnterEvent, QDropEvent
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QMimeData, QTimer
+from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QIcon
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QPushButton, QListWidget, QListWidgetItem, QStackedWidget,
     QGroupBox, QCheckBox, QSpinBox, QLineEdit, QFileDialog, QPlainTextEdit,
     QProgressBar, QSplitter, QAbstractItemView, QFrame,
-    QMessageBox, QStyle,
+    QMessageBox, QStyle, QTabWidget, QTextBrowser,
 )
 
 import office2pdf as backend
+from version_info import (
+    APP_AUTHOR,
+    APP_BUILD_DATE,
+    APP_COPYRIGHT,
+    APP_DESCRIPTION,
+    APP_LICENSE_ID,
+    APP_LICENSE_NAME,
+    APP_NAME,
+    APP_USER_MODEL_ID,
+    APP_VERSION,
+    SPLASH_DURATION_MS,
+)
+
+
+ICON_RELATIVE_PATH = Path("assets") / "office2pdf.ico"
+LICENSE_RELATIVE_PATH = Path("LICENSE.txt")
+NOTICES_RELATIVE_PATH = Path("THIRD_PARTY_NOTICES.txt")
+
+
+def resource_path(relative_path: Path | str) -> Path:
+    """Return a source-tree or PyInstaller-safe path to a bundled resource."""
+    bundle_root = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
+    return bundle_root / Path(relative_path)
+
+
+def load_application_icon() -> QIcon:
+    """Load the branded icon without making startup depend on the asset."""
+    icon_path = resource_path(ICON_RELATIVE_PATH)
+    return QIcon(str(icon_path)) if icon_path.is_file() else QIcon()
+
+
+def load_text_resource(relative_path: Path, fallback: str) -> str:
+    """Read a bundled text resource without making startup fragile."""
+    try:
+        return resource_path(relative_path).read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        return fallback
+
+
+def set_windows_app_identity() -> None:
+    """Give Windows a stable taskbar identity so the packaged icon is used."""
+    if not sys.platform.startswith("win"):
+        return
+    try:
+        import ctypes
+
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
+            APP_USER_MODEL_ID
+        )
+    except Exception:
+        # Cosmetic integration must never prevent the converter from starting.
+        pass
 
 
 # ==========================================================================
@@ -274,6 +330,49 @@ QFrame#Divider {
     background-color: #34383d;
     max-height: 1px;
 }
+
+QTabWidget::pane {
+    border: 1px solid #34383d;
+    background-color: #1c1e21;
+}
+
+QTabBar::tab {
+    background-color: #24272b;
+    color: #9ca2a8;
+    border: 1px solid #34383d;
+    border-bottom: none;
+    padding: 8px 18px;
+    min-width: 90px;
+}
+
+QTabBar::tab:selected {
+    background-color: #1c1e21;
+    color: #f2a900;
+    border-top: 2px solid #f2a900;
+}
+
+QTabBar::tab:hover:!selected {
+    color: #d7dadd;
+    background-color: #2b2f34;
+}
+
+QLabel#AboutTitle {
+    color: #f2a900;
+    font-size: 24pt;
+    font-weight: 700;
+}
+
+QLabel#AboutVersion {
+    color: #9ca2a8;
+    font-size: 10pt;
+}
+
+QTextBrowser#AboutOverview {
+    background-color: #17181a;
+    color: #d7dadd;
+    border: 1px solid #34383d;
+    padding: 12px;
+}
 """
 
 
@@ -285,6 +384,139 @@ def _mime_local_paths(mime: QMimeData) -> list[str]:
             if url.isLocalFile():
                 paths.append(url.toLocalFile())
     return paths
+
+
+# ==========================================================================
+# Startup splash
+# ==========================================================================
+
+class StartupSplash(QWidget):
+    """Five-second branded startup card modelled on the supplied artwork."""
+
+    def __init__(self, icon: QIcon) -> None:
+        flags = (
+            Qt.WindowType.SplashScreen
+            | Qt.WindowType.FramelessWindowHint
+            | Qt.WindowType.WindowStaysOnTopHint
+        )
+        super().__init__(None, flags)
+        self.setObjectName("StartupSplash")
+        self.setFixedSize(620, 620)
+        self._started_at = time.monotonic()
+
+        self.setStyleSheet(
+            """
+            QWidget#StartupSplash {
+                background-color: #07172a;
+                border: 1px solid #17314d;
+            }
+            QLabel {
+                background: transparent;
+                color: #dfe8f1;
+                font-family: "Segoe UI";
+            }
+            QLabel#SplashTitle {
+                font-size: 34pt;
+                font-weight: 700;
+            }
+            QLabel#SplashSubtitle {
+                color: #b7c3ce;
+                font-size: 12pt;
+            }
+            QLabel#SplashVersion {
+                color: #8da0b2;
+                font-size: 9pt;
+            }
+            QProgressBar {
+                border: 1px solid #24445f;
+                border-radius: 2px;
+                background-color: #0b2035;
+                height: 5px;
+                text-align: center;
+                color: transparent;
+            }
+            QProgressBar::chunk {
+                background-color: #f2a900;
+                border-radius: 2px;
+            }
+            """
+        )
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(72, 48, 72, 42)
+        layout.setSpacing(10)
+
+        icon_label = QLabel()
+        icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        if not icon.isNull():
+            icon_label.setPixmap(icon.pixmap(150, 150))
+        layout.addWidget(icon_label)
+
+        title = QLabel(
+            '<span style="color:#edf3f8;">Office</span>'
+            '<span style="color:#f2a900;">2PDF</span>'
+        )
+        title.setObjectName("SplashTitle")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(title)
+
+        divider = QFrame()
+        divider.setFrameShape(QFrame.Shape.HLine)
+        divider.setStyleSheet("background:#24445f; max-height:1px;")
+        layout.addWidget(divider)
+
+        subtitle = QLabel("Office file conversion made simple")
+        subtitle.setObjectName("SplashSubtitle")
+        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(subtitle)
+
+        version = QLabel(f"Version {APP_VERSION}")
+        version.setObjectName("SplashVersion")
+        version.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(version)
+        layout.addStretch(1)
+
+        loading = QLabel("Loading components…")
+        loading.setObjectName("SplashVersion")
+        loading.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(loading)
+
+        self.progress = QProgressBar()
+        self.progress.setRange(0, 100)
+        self.progress.setValue(0)
+        self.progress.setTextVisible(False)
+        layout.addWidget(self.progress)
+
+        credit = QLabel("A PROJECT BY LEON")
+        credit.setObjectName("SplashVersion")
+        credit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(credit)
+
+        self._timer = QTimer(self)
+        self._timer.setInterval(50)
+        self._timer.timeout.connect(self._advance_progress)
+
+    def showEvent(self, event) -> None:  # noqa: N802 - Qt API name
+        super().showEvent(event)
+        screen = QApplication.primaryScreen()
+        if screen is not None:
+            frame = self.frameGeometry()
+            frame.moveCenter(screen.availableGeometry().center())
+            self.move(frame.topLeft())
+        self._started_at = time.monotonic()
+        self._timer.start()
+
+    def _advance_progress(self) -> None:
+        elapsed_ms = (time.monotonic() - self._started_at) * 1000.0
+        self.progress.setValue(min(99, int((elapsed_ms / SPLASH_DURATION_MS) * 100)))
+
+    def reveal(self, window: QMainWindow) -> None:
+        self._timer.stop()
+        self.progress.setValue(100)
+        self.close()
+        window.show()
+        window.raise_()
+        window.activateWindow()
 
 
 # ==========================================================================
@@ -436,6 +668,7 @@ class ConversionOptions:
     jobs: int
     timeout: int
     retries: int
+    prefer_native: bool = False
 
 
 class ConversionWorker(QThread):
@@ -468,13 +701,20 @@ class ConversionWorker(QThread):
             )
 
     def _run_impl(self) -> None:
+        soffice_bin: str | None
         try:
             soffice_bin = backend.find_soffice()
+            self.log.emit(f"Using LibreOffice binary: {soffice_bin}", "info")
         except backend.LibreOfficeNotFoundError as exc:
-            self.fatalError.emit(str(exc))
-            return
-
-        self.log.emit(f"Using LibreOffice binary: {soffice_bin}", "info")
+            soffice_bin = None
+            # Not automatically fatal: a native Office backend might still
+            # handle every queued file on Windows. convert_one() reports a
+            # clear per-file failure for anything that actually needed
+            # LibreOffice and didn't have it.
+            self.log.emit(str(exc), "warn")
+            if not (sys.platform.startswith("win") and self.options.prefer_native):
+                self.fatalError.emit(str(exc))
+                return
 
         inputs = backend.discover_inputs(self.queued_paths, self.options.recursive)
         if not inputs:
@@ -516,6 +756,7 @@ class ConversionWorker(QThread):
                 timeout=self.options.timeout,
                 retries=self.options.retries,
                 overwrite=self.options.overwrite,
+                prefer_native=self.options.prefer_native,
             )
 
         completed = 0
@@ -607,7 +848,7 @@ class ConversionWorker(QThread):
         elif result.status is backend.ConversionStatus.SUCCESS:
             ok_count += 1
             self.log.emit(
-                f"OK    {result.source.name}  →  {result.output.name}  "
+                f"OK    [{result.backend}] {result.source.name}  →  {result.output.name}  "
                 f"({result.seconds:.1f}s, attempt {result.attempts})",
                 "ok",
             )
@@ -626,7 +867,7 @@ class ConversionWorker(QThread):
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-        self.setWindowTitle("office2pdf")
+        self.setWindowTitle(f"{APP_NAME} {APP_VERSION}")
         self.resize(1040, 680)
         self.worker: ConversionWorker | None = None
         self.last_output_dir: str | None = None
@@ -640,7 +881,16 @@ class MainWindow(QMainWindow):
     def _build_ui(self) -> None:
         central = QWidget()
         self.setCentralWidget(central)
-        root = QVBoxLayout(central)
+        outer = QVBoxLayout(central)
+        outer.setContentsMargins(0, 0, 0, 0)
+
+        self.main_tabs = QTabWidget()
+        self.main_tabs.setDocumentMode(True)
+        outer.addWidget(self.main_tabs)
+
+        converter_page = QWidget()
+        self.main_tabs.addTab(converter_page, "Converter")
+        root = QVBoxLayout(converter_page)
         root.setContentsMargins(16, 14, 16, 14)
         root.setSpacing(10)
 
@@ -649,7 +899,7 @@ class MainWindow(QMainWindow):
         header.setSpacing(0)
         title = QLabel("OFFICE  →  PDF")
         title.setObjectName("HeaderTitle")
-        subtitle = QLabel("Batch docx / xlsx / pptx conversion via LibreOffice — drag & drop enabled")
+        subtitle = QLabel("Reliable DOCX / XLSX / PPTX conversion — drag & drop enabled")
         subtitle.setObjectName("HeaderSubtitle")
         header.addWidget(title)
         header.addWidget(subtitle)
@@ -713,8 +963,17 @@ class MainWindow(QMainWindow):
 
         self.chk_recursive = QCheckBox("Recurse into subfolders")
         self.chk_overwrite = QCheckBox("Overwrite existing PDFs")
+        self.chk_prefer_native = QCheckBox("Use Microsoft Office for best layout fidelity (experimental)")
+        self.chk_prefer_native.setChecked(False)
+        self.chk_prefer_native.setToolTip(
+            "Windows only. Runs the matching Microsoft Office application in an "
+            "isolated helper process for output closest to 'Save as PDF'. This "
+            "remains opt-in until it has been verified on this PC. LibreOffice "
+            "is used automatically if native export fails or is unavailable."
+        )
         form.addRow(self.chk_recursive)
         form.addRow(self.chk_overwrite)
+        form.addRow(self.chk_prefer_native)
 
         self.spin_jobs = QSpinBox()
         self.spin_jobs.setRange(1, 16)
@@ -797,6 +1056,94 @@ class MainWindow(QMainWindow):
         self.btn_clear_log.clicked.connect(self.log_console.clear)
         self.btn_open_output.clicked.connect(self._on_open_output)
 
+        self.main_tabs.addTab(self._build_about_page(), "About")
+
+    def _build_about_page(self) -> QWidget:
+        page = QWidget()
+        root = QVBoxLayout(page)
+        root.setContentsMargins(28, 24, 28, 24)
+        root.setSpacing(14)
+
+        brand_row = QHBoxLayout()
+        brand_row.setSpacing(18)
+        icon_label = QLabel()
+        icon_label.setFixedSize(112, 112)
+        icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        icon = load_application_icon()
+        if not icon.isNull():
+            icon_label.setPixmap(icon.pixmap(104, 104))
+        brand_row.addWidget(icon_label)
+
+        brand_text = QVBoxLayout()
+        brand_text.setSpacing(3)
+        title = QLabel(APP_NAME)
+        title.setObjectName("AboutTitle")
+        version = QLabel(f"Version {APP_VERSION}  •  Built {APP_BUILD_DATE}")
+        version.setObjectName("AboutVersion")
+        description = QLabel(APP_DESCRIPTION)
+        description.setWordWrap(True)
+        brand_text.addWidget(title)
+        brand_text.addWidget(version)
+        brand_text.addWidget(description)
+        brand_text.addStretch(1)
+        brand_row.addLayout(brand_text, stretch=1)
+        root.addLayout(brand_row)
+
+        details = QGroupBox("Program Information")
+        details_form = QFormLayout(details)
+        details_form.addRow("Author", QLabel(APP_AUTHOR))
+        details_form.addRow("Copyright", QLabel(APP_COPYRIGHT))
+        details_form.addRow("Licence", QLabel(f"{APP_LICENSE_NAME} ({APP_LICENSE_ID})"))
+        details_form.addRow("Default backend", QLabel("LibreOffice (separately installed)"))
+        details_form.addRow("Optional backend", QLabel("Microsoft Word / Excel / PowerPoint on Windows"))
+        details_form.addRow("Source code", QLabel(f"Office2PDF-{APP_VERSION}-source.zip is supplied with the release"))
+        root.addWidget(details)
+
+        info_tabs = QTabWidget()
+
+        overview = QTextBrowser()
+        overview.setObjectName("AboutOverview")
+        overview.setOpenExternalLinks(False)
+        overview.setHtml(
+            f"""
+            <h3 style='color:#f2a900;'>Reliable conversion without silent failure</h3>
+            <p>Office2PDF converts Word, Excel and PowerPoint documents to PDF using
+            LibreOffice by default. On Windows, native Microsoft Office export can be
+            enabled for maximum layout fidelity.</p>
+            <p>Every conversion uses a private staging directory. A new PDF is checked
+            before it atomically replaces the destination, preventing stale-output false
+            success and protecting an existing valid PDF when conversion fails.</p>
+            <p><b>Supported formats:</b> {', '.join(sorted(backend.SUPPORTED_EXTENSIONS))}</p>
+            <p><b>Release:</b> {APP_VERSION}<br/>
+            <b>Build date:</b> {APP_BUILD_DATE}<br/>
+            <b>Licence identifier:</b> {APP_LICENSE_ID}</p>
+            """
+        )
+        info_tabs.addTab(overview, "Overview")
+
+        licence = QPlainTextEdit()
+        licence.setReadOnly(True)
+        licence.setPlainText(
+            load_text_resource(
+                LICENSE_RELATIVE_PATH,
+                "GNU GPL v3 licence text was not found in this installation.",
+            )
+        )
+        info_tabs.addTab(licence, "GPL Licence")
+
+        notices = QPlainTextEdit()
+        notices.setReadOnly(True)
+        notices.setPlainText(
+            load_text_resource(
+                NOTICES_RELATIVE_PATH,
+                "Third-party notices were not found in this installation.",
+            )
+        )
+        info_tabs.addTab(notices, "Third-Party Notices")
+
+        root.addWidget(info_tabs, stretch=1)
+        return page
+
     # -- queue handlers ---------------------------------------------
 
     def _on_add_files(self) -> None:
@@ -852,6 +1199,7 @@ class MainWindow(QMainWindow):
             jobs=self.spin_jobs.value(),
             timeout=self.spin_timeout.value(),
             retries=self.spin_retries.value(),
+            prefer_native=self.chk_prefer_native.isChecked(),
         )
         self.last_output_dir = output_dir
         self._output_folders.clear()
@@ -883,7 +1231,7 @@ class MainWindow(QMainWindow):
         self.btn_cancel.setEnabled(running)
         for w in (
             self.btn_add_files, self.btn_add_folder, self.btn_remove, self.btn_clear,
-            self.chk_same_folder, self.chk_recursive, self.chk_overwrite,
+            self.chk_same_folder, self.chk_recursive, self.chk_overwrite, self.chk_prefer_native,
             self.spin_jobs, self.spin_timeout, self.spin_retries,
         ):
             w.setEnabled(not running)
@@ -999,10 +1347,27 @@ class MainWindow(QMainWindow):
 
 
 def main() -> int:
+    set_windows_app_identity()
     app = QApplication(sys.argv)
+    app.setApplicationName(APP_NAME)
+    app.setOrganizationName(APP_NAME)
+
+    icon = load_application_icon()
+    if not icon.isNull():
+        app.setWindowIcon(icon)
+
+    app.setApplicationVersion(APP_VERSION)
     app.setStyleSheet(INDUSTRIAL_DARK_QSS)
+
+    splash = StartupSplash(icon)
+    splash.show()
+    app.processEvents()
+
     window = MainWindow()
-    window.show()
+    if not icon.isNull():
+        window.setWindowIcon(icon)
+
+    QTimer.singleShot(SPLASH_DURATION_MS, lambda: splash.reveal(window))
     return app.exec()
 
 

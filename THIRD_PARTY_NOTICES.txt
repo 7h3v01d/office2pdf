@@ -1,0 +1,57 @@
+Office2PDF — Third-Party Notices
+================================
+
+Office2PDF is distributed under the GNU General Public License version 3
+or, at your option, any later version (GPL-3.0-or-later).
+
+The application uses or interoperates with the following third-party software:
+
+PyQt6
+-----
+Copyright Riverbank Computing Limited.
+PyQt6 is dual-licensed under the GNU GPL version 3 and the Riverbank
+Commercial License. This build uses the GPL version.
+https://www.riverbankcomputing.com/software/pyqt/intro
+
+Qt 6
+----
+The PyQt6 binary wheels include Qt libraries. The relevant Qt modules used by
+this application are made available under the GNU Lesser General Public
+License version 3 and other applicable Qt open-source licences.
+https://www.qt.io/licensing/open-source-lgpl-obligations
+
+Python
+------
+Copyright Python Software Foundation and contributors.
+Python is distributed under the Python Software Foundation License.
+https://docs.python.org/3/license.html
+
+PyInstaller
+-----------
+Copyright PyInstaller Development Team.
+PyInstaller is distributed under the GNU General Public License version 2
+with a special exception allowing generated executables to be distributed
+under the licence chosen for the application.
+https://pyinstaller.org/en/stable/license.html
+
+pywin32
+-------
+Copyright Mark Hammond and contributors.
+pywin32 is distributed under the Python Software Foundation License.
+https://github.com/mhammond/pywin32
+
+LibreOffice
+-----------
+LibreOffice is not bundled with Office2PDF. When installed separately, it is
+used as an external conversion backend. LibreOffice is distributed under the
+Mozilla Public License 2.0 and GNU LGPL 3.0 or later.
+https://www.libreoffice.org/about-us/licenses/
+
+Microsoft Office
+----------------
+Microsoft Word, Excel and PowerPoint are not bundled with Office2PDF. If the
+user enables native Office conversion, Office2PDF automates the user's
+separately installed and licensed Microsoft Office applications.
+
+No affiliation or endorsement by the third-party projects or vendors listed
+above is implied.

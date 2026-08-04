@@ -1,1 +1,2 @@
-https://download.documentfoundation.org/libreoffice/stable/26.2.5/win/x86_64/LibreOffice_26.2.5_Win_x86-64.msix86-64.msi
+Official LibreOffice download page:
+https://www.libreoffice.org/download/download-libreoffice/
