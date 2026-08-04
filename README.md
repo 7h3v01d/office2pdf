@@ -1,4 +1,4 @@
-# Office2PDF 1.0.0
+<img width="640" height="214" alt="banner2" src="https://github.com/user-attachments/assets/43d823d9-7060-4264-a6db-483bbffd3205" />
 
 Office2PDF is a Windows desktop converter for Word, Excel and PowerPoint documents. Version 1.0.0 adds a branded five-second splash screen, a full About tab, embedded Windows version information and release licence notices.
 
