@@ -6,7 +6,7 @@ A Windows-friendly desktop converter for DOC/DOCX, XLS/XLSX, PPT/PPTX and other 
 
 The primary target is a dependable Windows 11 application for ordinary users: add a file, choose an output location, and create a PDF without risking an existing good copy.
 
-<img width="1042" height="723" alt="screenshot" src="https://github.com/user-attachments/assets/d0149607-7923-4a9e-b146-9791772c4810" />
+<img width="1042" height="836" alt="screenshot" src="https://github.com/user-attachments/assets/9d208186-b0c1-4b33-8fcf-08a4fa7f51c1" />
 
 ---
 
