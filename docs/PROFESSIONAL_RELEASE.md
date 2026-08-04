@@ -5,7 +5,7 @@ Build date: 4 August 2026
 ## New user-facing features
 
 - Five-second branded startup splash matching the supplied dark navy and amber artwork.
-- Animated loading indicator with the Office2PDF icon, release version and Leon credit.
+- Animated loading indicator with the Office2PDF icon, release version and Leon Priest credit.
 - New top-level `About` tab.
 - Overview, full GPL licence and third-party notices are readable inside the application.
 - Version 1.0.0 and build date are displayed consistently.

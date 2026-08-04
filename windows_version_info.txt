@@ -14,11 +14,11 @@ VSVersionInfo(
       StringTable(
         u'040904B0',
         [
-          StringStruct(u'CompanyName', u'Leon'),
+          StringStruct(u'CompanyName', u'Leon Priest'),
           StringStruct(u'FileDescription', u'Office2PDF — Office document to PDF converter'),
           StringStruct(u'FileVersion', u'1.0.0'),
           StringStruct(u'InternalName', u'Office2PDF'),
-          StringStruct(u'LegalCopyright', u'Copyright © 2026 Leon'),
+          StringStruct(u'LegalCopyright', u'Copyright © 2026 Leon Priest'),
           StringStruct(u'OriginalFilename', u'Office2PDF.exe'),
           StringStruct(u'ProductName', u'Office2PDF'),
           StringStruct(u'ProductVersion', u'1.0.0')

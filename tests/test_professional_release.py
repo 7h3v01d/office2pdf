@@ -24,10 +24,14 @@ class ProfessionalReleaseTests(unittest.TestCase):
         self.assertEqual(version_info.APP_VERSION_TUPLE, (1, 0, 0, 0))
         self.assertEqual(version_info.SPLASH_DURATION_MS, 5000)
         self.assertEqual(version_info.APP_LICENSE_ID, "GPL-3.0-or-later")
+        self.assertEqual(version_info.APP_AUTHOR, "Leon Priest")
+        self.assertEqual(version_info.APP_COPYRIGHT, "Copyright © 2026 Leon Priest")
 
         version_resource = VERSION_RESOURCE.read_text(encoding="utf-8")
         self.assertIn("filevers=(1, 0, 0, 0)", version_resource)
         self.assertIn("ProductVersion', u'1.0.0'", version_resource)
+        self.assertIn("CompanyName', u'Leon Priest'", version_resource)
+        self.assertIn("Copyright © 2026 Leon Priest", version_resource)
 
     def test_gui_contains_five_second_splash_and_about_tab(self) -> None:
         source = GUI_PATH.read_text(encoding="utf-8")
@@ -42,6 +46,7 @@ class ProfessionalReleaseTests(unittest.TestCase):
         notices = NOTICES_PATH.read_text(encoding="utf-8")
         self.assertIn("GNU GENERAL PUBLIC LICENSE", licence)
         self.assertIn("Version 3, 29 June 2007", licence)
+        self.assertIn("Copyright (C) 2026 Leon Priest", licence)
         self.assertIn("PyQt6", notices)
         self.assertIn("LibreOffice", notices)
         self.assertIn("Microsoft Office", notices)
@@ -72,6 +77,13 @@ class ProfessionalReleaseTests(unittest.TestCase):
         self.assertIn(root + "office2pdf.py", names)
         self.assertIn(root + "native_office_worker.py", names)
         self.assertIn(root + "LICENSE.txt", names)
+        self.assertIn(root + "setup.bat", names)
+        self.assertIn(root + "run.bat", names)
+        self.assertIn(root + "test.bat", names)
+        self.assertIn(root + "docs/CLI_GUIDE.md", names)
+        self.assertIn(root + "docs/PROFESSIONAL_RELEASE.md", names)
+        self.assertIn(root + "docs/images/banner.png", names)
+        self.assertIn(root + "assets/office2pdf.ico", names)
         self.assertIn(root + "tests/test_office2pdf.py", names)
 
 

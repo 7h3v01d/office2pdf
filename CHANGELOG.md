@@ -2,6 +2,7 @@
 
 ## 1.0.0 — 4 August 2026
 
+- Corrected all author, copyright and Windows metadata attribution to the full name **Leon Priest**.
 - Added a five-second branded Office2PDF splash screen.
 - Added a professional About tab with overview, version, author, build date, licence and third-party notices.
 - Added Windows file-version resources for both executables.
@@ -9,6 +10,8 @@
 - Added bundled licence notices and an automatically generated corresponding-source archive.
 - Replaced the shortcut creator with the no-PowerShell, release-folder-validating implementation.
 - Expanded the suite to 37 tests.
+- Consolidated technical documentation under `docs/` and documentation artwork under `docs/images/`.
+- Made corresponding-source packaging recursive for `assets/`, `docs/`, and `tests/` so future file organisation changes do not require a brittle manifest update.
 
 ## Branded icon integration — 2026-08-04
 

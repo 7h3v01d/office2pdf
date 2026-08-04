@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (C) 2026 Leon
+# Copyright (C) 2026 Leon Priest
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """Create the corresponding-source archive shipped with Office2PDF releases."""
@@ -13,7 +13,11 @@ from zipfile import ZIP_DEFLATED, ZipFile
 from version_info import APP_VERSION
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-SOURCE_PATHS = (
+
+# Root-level source, build, legal, and user-facing files that are required
+# for a complete corresponding-source release.
+SOURCE_FILES = (
+    ".gitignore",
     "gui.py",
     "office2pdf.py",
     "native_office_worker.py",
@@ -32,11 +36,37 @@ SOURCE_PATHS = (
     "THIRD_PARTY_NOTICES.txt",
     "SOURCE_OFFER.txt",
     "README.md",
-    "README_cli.md",
     "CHANGELOG.md",
-    "PROFESSIONAL_RELEASE.md",
-    "assets/office2pdf.ico",
 )
+
+# These directories are intentionally recursive so reorganising documentation
+# or adding tests/assets does not require updating a brittle file manifest.
+SOURCE_DIRECTORIES = (
+    "assets",
+    "docs",
+    "tests",
+)
+
+
+def _iter_source_files() -> list[Path]:
+    files: list[Path] = []
+
+    for relative in SOURCE_FILES:
+        source = PROJECT_ROOT / relative
+        if not source.is_file():
+            raise FileNotFoundError(f"required source file missing: {relative}")
+        files.append(source)
+
+    for relative in SOURCE_DIRECTORIES:
+        directory = PROJECT_ROOT / relative
+        if not directory.is_dir():
+            raise FileNotFoundError(f"required source directory missing: {relative}")
+        files.extend(path for path in directory.rglob("*") if path.is_file())
+
+    return sorted(
+        set(files),
+        key=lambda path: path.relative_to(PROJECT_ROOT).as_posix().casefold(),
+    )
 
 
 def create_source_archive(output: Path) -> Path:
@@ -45,15 +75,9 @@ def create_source_archive(output: Path) -> Path:
     root_name = f"Office2PDF-{APP_VERSION}-source"
 
     with ZipFile(output, "w", compression=ZIP_DEFLATED, compresslevel=9) as archive:
-        for relative in SOURCE_PATHS:
-            source = PROJECT_ROOT / relative
-            if not source.is_file():
-                raise FileNotFoundError(f"required source file missing: {relative}")
+        for source in _iter_source_files():
+            relative = source.relative_to(PROJECT_ROOT).as_posix()
             archive.write(source, f"{root_name}/{relative}")
-
-        tests_dir = PROJECT_ROOT / "tests"
-        for source in sorted(tests_dir.glob("test_*.py"), key=lambda p: p.name.casefold()):
-            archive.write(source, f"{root_name}/tests/{source.name}")
 
     return output
 

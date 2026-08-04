@@ -8,6 +8,11 @@ for %%F in (
     "LICENSE.txt"
     "THIRD_PARTY_NOTICES.txt"
     "SOURCE_OFFER.txt"
+    "setup.bat"
+    "run.bat"
+    "test.bat"
+    "docs\CLI_GUIDE.md"
+    "docs\PROFESSIONAL_RELEASE.md"
     "windows_version_info.txt"
     "windows_worker_version_info.txt"
 ) do (

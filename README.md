@@ -6,10 +6,6 @@ A Windows-friendly desktop converter for DOC/DOCX, XLS/XLSX, PPT/PPTX and other 
 
 The primary target is a dependable Windows 11 application for ordinary users: add a file, choose an output location, and create a PDF without risking an existing good copy.
 
-<img width="1042" height="836" alt="screenshot" src="https://github.com/user-attachments/assets/9d208186-b0c1-4b33-8fcf-08a4fa7f51c1" />
-
----
-
 ## Current safety model
 
 **LibreOffice is the default backend.** Each conversion uses an isolated profile and a private staging directory. The staged result must pass PDF sanity checks before `os.replace()` atomically commits it to the final destination.
@@ -38,7 +34,7 @@ An optional Microsoft Office backend is available on Windows for closer Word/Exc
 ## Windows development setup
 
 1. Install 64-bit Python 3.11.
-2. Install LibreOffice. `Libre_Office_Link.txt` points to the official download page.
+2. Install LibreOffice. `docs/Libre_Office_Link.txt` points to the official download page.
 3. Double-click `setup.bat`.
 4. Double-click `test.bat`.
 5. Double-click `run.bat`.
@@ -69,12 +65,12 @@ The first release intentionally uses PyInstaller one-folder mode because it is e
 
 Leave **Use Microsoft Office for best layout fidelity (experimental)** unchecked for Dad's first LibreOffice-only test.
 
-After that path is proven, follow `WINDOWS_VALIDATION_CHECKLIST.md` to test native Word and Excel export. `test.bat` contains real end-to-end Word and Excel tests that automatically run when Windows, pywin32, LibreOffice and the matching Office application are present.
+After that path is proven, follow `docs/WINDOWS_VALIDATION_CHECKLIST.md` to test native Word and Excel export. `test.bat` contains real end-to-end Word and Excel tests that automatically run when Windows, pywin32, LibreOffice and the matching Office application are present.
 
 ## Verification completed in this environment
 
 - Python compilation passed for the backend, GUI, native worker and tests.
-- Local suite: 29 tests, 21 passed and 8 platform-specific skipped. On Windows without Office, expect 20 passed and 9 Office/platform-specific skips.
+- Current suite: 37 tests. On a Windows machine with Word, Excel and LibreOffice available, expect 36 passes and one platform-only skip; unavailable native applications are skipped explicitly.
 - The native timeout regression returned at the configured process deadline rather than waiting for the worker to finish.
 - Native failure-to-LibreOffice fallback passed.
 - Real DOCX and XLSX files converted concurrently through actual LibreOffice.
@@ -87,14 +83,15 @@ The remaining boundary is genuine Windows validation of COM automation and the P
 - `gui.py` — PyQt6 desktop interface
 - `office2pdf.py` — conversion backend and CLI
 - `native_office_worker.py` — isolated Microsoft Office COM worker
-- `tests/test_office2pdf.py` — mocked and real end-to-end regression tests
+- `tests/` — mocked, branding, professional-release and real end-to-end regression tests
 - `setup.bat`, `run.bat`, `test.bat` — Windows development workflow
 - `build_exe.bat` — test-gated Windows build with embedded application icon
 - `assets/office2pdf.ico` — title-bar, taskbar, executable and shortcut icon
+- `docs/` — CLI guide, validation procedures, reliability reports and documentation images
 - `create_shortcuts.bat` — creates Desktop and Start Menu shortcuts for the built release
-- `WINDOWS_VALIDATION_CHECKLIST.md` — target-PC proving steps
-- `REVIEW_FINDINGS.md` — findings from the incoming native-backend update
-- `RELIABILITY_REPORT.md` — consolidated technical status
+- `docs/WINDOWS_VALIDATION_CHECKLIST.md` — target-PC proving steps
+- `docs/REVIEW_FINDINGS.md` — findings from the incoming native-backend update
+- `docs/RELIABILITY_REPORT.md` — consolidated technical status
 
 ## Licence
 

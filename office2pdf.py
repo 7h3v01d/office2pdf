@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (C) 2026 Leon
+# Copyright (C) 2026 Leon Priest
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """Reliable Office document to PDF conversion with safe backend isolation.
