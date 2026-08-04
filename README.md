@@ -1,4 +1,4 @@
-<img width="640" height="214" alt="banner2" src="https://github.com/user-attachments/assets/43d823d9-7060-4264-a6db-483bbffd3205" />
+<img width="960" height="214" alt="banner2" src="https://github.com/user-attachments/assets/43d823d9-7060-4264-a6db-483bbffd3205" />
 
 Office2PDF is a Windows desktop converter for Word, Excel and PowerPoint documents. Version 1.0.0 adds a branded five-second splash screen, a full About tab, embedded Windows version information and release licence notices.
 
@@ -6,7 +6,7 @@ A Windows-friendly desktop converter for DOC/DOCX, XLS/XLSX, PPT/PPTX and other 
 
 The primary target is a dependable Windows 11 application for ordinary users: add a file, choose an output location, and create a PDF without risking an existing good copy.
 
-<img width="1542" height="723" alt="screenshot" src="https://github.com/user-attachments/assets/130d8f2f-d844-43e9-a001-f3b1c6766d26" />
+<img width="1042" height="723" alt="screenshot" src="https://github.com/user-attachments/assets/130d8f2f-d844-43e9-a001-f3b1c6766d26" />
 
 ---
 
